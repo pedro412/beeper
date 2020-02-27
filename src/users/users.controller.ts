@@ -1,26 +1,31 @@
 import { Controller, Get, Post, Param, Body } from '@nestjs/common';
-import { CreateUserDto } from './dto';
+import { CreateUserDto, UserDto } from './dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
+  constructor(private usersService: UsersService) {}
+
   @Get(':id')
   findOne(@Param() params): string {
     return `This action returns a ${params.id} user`;
   }
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto): string {
+  async create(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     console.log(createUserDto);
+    const createdUser = await this.usersService.create(createUserDto);
 
-    return 'This action adds a new user';
+    return createdUser;
   }
 
   @Get()
-  findAll(): object {
+  async findAll(): Promise<object> {
+    const users = await this.usersService.findAll();
     return {
       success: true,
       message: 'list all users',
-      data: [],
+      data: users,
     };
   }
 }
