@@ -8,13 +8,15 @@ const usersApi = app => {
   const usersService = new UsersService();
 
   router.get('/', async (req, res, next) => {
+    const { active } = req.query;
+
     try {
-      const users = await usersService.getUsers();
+      const users = await usersService.getUsers({ active });
 
       res.status(200).json({
         success: true,
         message: 'users listed',
-        data: users
+        data: { users: users }
       });
     } catch (error) {
       next(error);
@@ -29,7 +31,7 @@ const usersApi = app => {
       res.status(200).json({
         success: true,
         message: 'user listed',
-        data: user
+        data: { user: user }
       });
     } catch (error) {
       next(error);
@@ -38,6 +40,7 @@ const usersApi = app => {
 
   router.post('/', async (req, res, next) => {
     const { body: user } = req;
+
     try {
       const createdUserId = await usersService.createUser({ user });
 
