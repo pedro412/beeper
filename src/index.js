@@ -1,13 +1,29 @@
 const express = require('express');
+const cors = require('cors');
+const { config } = require('./config/index');
+const {
+  logErrors,
+  wrapErrors,
+  errorHandler
+} = require('./utils/middleware/errorHandlers');
+const notFoundHandler = require('./utils/middleware/notFoundHandler');
+const usersApi = require('./routes/users');
 
 const app = express();
 
-const { config } = require('./config/index');
-const usersApi = require('./routes/users');
+app.use(cors());
 
 app.use(express.json());
 
 usersApi(app);
+
+// 404
+app.use(notFoundHandler);
+
+// Errors handlers
+app.use(logErrors);
+app.use(wrapErrors);
+app.use(errorHandler);
 
 app.listen(config.port, () => {
   console.log(`server running on http://localhost:${config.port}`);
