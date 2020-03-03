@@ -8,6 +8,7 @@ const {
 } = require('./utils/middleware/errorHandlers');
 const notFoundHandler = require('./utils/middleware/notFoundHandler');
 const usersApi = require('./routes/users');
+const coordinatesApi = require('./routes/coordinates');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 
 usersApi(app);
+coordinatesApi(app);
 
 // 404
 app.use(notFoundHandler);
