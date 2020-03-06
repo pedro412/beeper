@@ -6,6 +6,24 @@ const {
   updateUserSchema
 } = require('../utils/schemas/users');
 const validationHandler = require('../utils/middleware/validationHandler');
+const jwt = require('jsonwebtoken');
+const { config } = require('../config');
+const passport = require('passport');
+const bcrypt = require('bcrypt');
+// eslint-disable-next-line no-unused-vars
+const passportConf = require('../passport');
+
+const signToken = userId => {
+  return jwt.sign(
+    {
+      iss: 'pointlify.com',
+      sub: userId,
+      iat: new Date().getTime(),
+      exp: new Date().setDate(new Date().getDate() + 1)
+    },
+    config.authJwtSecret
+  );
+};
 
 const usersApi = app => {
   const router = express.Router();
@@ -13,56 +31,62 @@ const usersApi = app => {
 
   const usersService = new UsersService();
 
-  router.get('/', async (req, res, next) => {
-    const { active } = req.query;
-
+  router.post('/login', async (req, res, next) => {
+    const { email, password } = req.body;
     try {
-      const users = await usersService.getUsers({ active });
+      const userExist = await usersService.getUser({ email });
 
-      res.status(200).json({
+      if (!userExist) {
+        return res.status(401).json({
+          success: false,
+          message: 'wrong credentials'
+        });
+      }
+
+      if (!bcrypt.compareSync(password, userExist.password)) {
+        console.log('here');
+
+        return res.status(401).json({
+          success: false,
+          message: 'wrong credentials'
+        });
+      }
+
+      return res.status(200).json({
         success: true,
-        message: 'users listed',
-        data: { users: users }
+        message: 'login success',
+        token: signToken(userExist._id),
+        userName: userExist.name
       });
     } catch (error) {
       next(error);
     }
   });
 
-  router.get(
-    '/:userId',
-    validationHandler({ userId: userIdSchema }, 'params'),
-    async (req, res, next) => {
-      const { userId } = req.params;
-      try {
-        const user = await usersService.getUser({ userId });
-
-        res.status(200).json({
-          success: true,
-          message: 'user listed',
-          data: { user: user }
-        });
-      } catch (error) {
-        next(error);
-      }
-    }
-  );
-
   router.post(
     '/',
     validationHandler(createUserSchema),
     async (req, res, next) => {
       const { body: user } = req;
-      user.createdAt = Date.now();
-      user.active = true;
 
       try {
+        const userExist = await usersService.getUser({ email: user.email });
+
+        if (userExist !== undefined) {
+          return res.status(400).json({
+            success: false,
+            message: 'Email is already registered'
+          });
+        }
+
         const createdUserId = await usersService.createUser({ user });
+
+        const token = signToken(createdUserId);
 
         res.status(201).json({
           success: true,
           message: 'user saved',
-          data: createdUserId
+          data: { user: { userId: createdUserId, token } }
         });
       } catch (error) {
         next(error);
@@ -106,6 +130,18 @@ const usersApi = app => {
       } catch (error) {
         next(error);
       }
+    }
+  );
+
+  router.get(
+    '/secret',
+    passport.authenticate('jwt', { session: false }),
+    (req, res) => {
+      console.log(req.user);
+
+      res.json({
+        secret: 'resource'
+      });
     }
   );
 };

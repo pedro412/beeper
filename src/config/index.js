@@ -6,7 +6,9 @@ const config = {
   databaseUser: process.env.DATABASE_USER,
   databasePassword: process.env.DATABASE_PASSWORD,
   databaseUri: process.env.DATABASE_URI,
-  databaseName: process.env.DATABASE_NAME
+  databaseName: process.env.DATABASE_NAME,
+  defaultAdminPassword: process.env.DEFAULT_ADMIN_PASSWORD,
+  authJwtSecret: process.env.AUTH_JWT_SECRET
 };
 
 module.exports = { config };

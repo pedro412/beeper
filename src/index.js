@@ -8,15 +8,17 @@ const {
 } = require('./utils/middleware/errorHandlers');
 const notFoundHandler = require('./utils/middleware/notFoundHandler');
 const usersApi = require('./routes/users');
+const beepersApi = require('./routes/beepers');
 const coordinatesApi = require('./routes/coordinates');
 
 const app = express();
 
 app.use(cors());
-
 app.use(express.json());
 
+// Routes
 usersApi(app);
+beepersApi(app);
 coordinatesApi(app);
 
 // 404

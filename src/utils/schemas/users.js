@@ -12,7 +12,8 @@ const createUserSchema = {
   email: userEmailSchema.required(),
   password: userPasswordSchema.required(),
   createdAt: userCreatedAtSchema,
-  active: userActiveSchema
+  active: userActiveSchema,
+  isAdmin: joi.boolean()
 };
 
 const updateUserSchema = {
